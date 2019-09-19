@@ -7,7 +7,7 @@ public class Main extends JPanel {
     private Main() {
 
         setLayout(null);
-        setPreferredSize( new Dimension(350,450) );
+        setPreferredSize(new Dimension(350,450));
 
         setBackground(new Color(0,150,0));
 

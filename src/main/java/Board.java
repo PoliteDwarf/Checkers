@@ -13,15 +13,15 @@ public class Board extends JPanel implements ActionListener, MouseListener {
     JLabel message;
 
 
-    private CheckersData board;
+    private Data board;
 
-    private boolean gameInProgress;
+    private boolean Active;
 
-    private int currentPlayer;
+    private Data.Check currentPlayer;
 
     private int selectedRow, selectedCol;
 
-    private CheckersMove[] legalMoves;
+    private Move[] legalMoves;
 
     Board() {
         setBackground(Color.BLACK);
@@ -33,32 +33,32 @@ public class Board extends JPanel implements ActionListener, MouseListener {
         message = new JLabel("",JLabel.CENTER);
         message.setFont(new  Font("Serif", Font.BOLD, 14));
         message.setForeground(Color.green);
-        board = new CheckersData();
-        doNewGame();
+        board = new Data();
+        newGame();
     }
 
     public void actionPerformed(ActionEvent evt) {
         Object src = evt.getSource();
         if (src == newGameButton)
-            doNewGame();
+            newGame();
         else if (src == resignButton)
-            doResign();
+            resign();
     }
 
-    private void doNewGame() {
-        board.setUpGame();
-        currentPlayer = CheckersData.WHITE;
-        legalMoves = board.getLegalMoves(CheckersData.WHITE);
+    private void newGame() {
+        board.setUp();
+        currentPlayer = Data.Check.WHITE;
+        legalMoves = board.getMoves(Data.Check.WHITE);
         selectedRow = -1;
         message.setText("Ход белых");
-        gameInProgress = true;
+        Active = true;
         newGameButton.setEnabled(false);
         resignButton.setEnabled(true);
         repaint();
     }
 
-    private void doResign() {
-        if (currentPlayer == CheckersData.WHITE)
+    private void resign() {
+        if (currentPlayer == Data.Check.WHITE)
             gameOver("Белые сдались");
         else
             gameOver("Чёрные сдались");
@@ -68,16 +68,16 @@ public class Board extends JPanel implements ActionListener, MouseListener {
         message.setText(str);
         newGameButton.setEnabled(true);
         resignButton.setEnabled(false);
-        gameInProgress = false;
+        Active = false;
     }
 
-    private void doClickSquare(int row, int col) {
+    private void clickSquare(int row, int col) {
 
-        for (CheckersMove move : legalMoves)
-            if (move.fromRow == row && move.fromCol == col) {
+        for (Move move : legalMoves)
+            if (move.row1 == row && move.col1 == col) {
                 selectedRow = row;
                 selectedCol = col;
-                if (currentPlayer == CheckersData.WHITE)
+                if (currentPlayer == Data.Check.WHITE)
                     message.setText("Ход белых");
                 else
                     message.setText("Ход чёрных");
@@ -86,13 +86,13 @@ public class Board extends JPanel implements ActionListener, MouseListener {
             }
 
         if (selectedRow < 0) {
-            message.setText("Нажми на шашку, которую хочешь подвинуть");
+            message.setText("Нажми на шашку, которую хочешь передвинуть");
             return;
         }
 
-        for (CheckersMove legalMove : legalMoves)
-            if (legalMove.fromRow == selectedRow && legalMove.fromCol == selectedCol
-                    && legalMove.toRow == row && legalMove.toCol == col) {
+        for (Move legalMove : legalMoves)
+            if (legalMove.row1 == selectedRow && legalMove.col1 == selectedCol
+                    && legalMove.row2 == row && legalMove.col2 == col) {
                 doMakeMove(legalMove);
                 return;
             }
@@ -101,27 +101,27 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 
     }
 
-    private void doMakeMove(CheckersMove move) {
+    private void doMakeMove(Move move) {
 
         board.makeMove(move);
 
         if (move.isJump()) {
-            legalMoves = board.getLegalJumpsFrom(currentPlayer,move.toRow,move.toCol);
+            legalMoves = board.getJumps(currentPlayer,move.row2,move.col2);
             if (legalMoves != null) {
-                if (currentPlayer == CheckersData.WHITE)
+                if (currentPlayer == Data.Check.WHITE)
                     message.setText("Белые должны бить дальше");
                 else
                     message.setText("Чёрные должны бить дальше");
-                selectedRow = move.toRow;
-                selectedCol = move.toCol;
+                selectedRow = move.row2;
+                selectedCol = move.col2;
                 repaint();
                 return;
             }
         }
 
-        if (currentPlayer == CheckersData.WHITE) {
-            currentPlayer = CheckersData.BLACK;
-            legalMoves = board.getLegalMoves(currentPlayer);
+        if (currentPlayer == Data.Check.WHITE) {
+            currentPlayer = Data.Check.BLACK;
+            legalMoves = board.getMoves(currentPlayer);
             if (legalMoves == null)
                 gameOver("Победа белых");
             else if (legalMoves[0].isJump())
@@ -130,8 +130,8 @@ public class Board extends JPanel implements ActionListener, MouseListener {
                 message.setText("Ход чёрных");
         }
         else {
-            currentPlayer = CheckersData.WHITE;
-            legalMoves = board.getLegalMoves(currentPlayer);
+            currentPlayer = Data.Check.WHITE;
+            legalMoves = board.getMoves(currentPlayer);
             if (legalMoves == null)
                 gameOver("Победа чёрных");
             else if (legalMoves[0].isJump())
@@ -142,18 +142,9 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 
         selectedRow = -1;
 
-        if (legalMoves != null) {
-            boolean sameStartSquare = true;
-            for (int i = 1; i < legalMoves.length; i++)
-                if (legalMoves[i].fromRow != legalMoves[0].fromRow
-                        || legalMoves[i].fromCol != legalMoves[0].fromCol) {
-                    sameStartSquare = false;
-                    break;
-                }
-            if (sameStartSquare) {
-                selectedRow = legalMoves[0].fromRow;
-                selectedCol = legalMoves[0].fromCol;
-            }
+        if (legalMoves.length == 1) {
+            selectedRow = legalMoves[0].row1;
+            selectedCol = legalMoves[0].col1;
         }
 
         repaint();
@@ -174,21 +165,21 @@ public class Board extends JPanel implements ActionListener, MouseListener {
                     g.setColor(Color.GRAY);
                 g.fillRect(2 + col*40, 2 + row*40, 40, 40);
                 switch (board.pieceAt(row,col)) {
-                    case CheckersData.WHITE:
+                    case WHITE:
                         g.setColor(Color.WHITE);
                         g.fillOval(4 + col*40, 4 + row*40, 35, 35);
                         break;
-                    case CheckersData.BLACK:
+                    case BLACK:
                         g.setColor(Color.BLACK);
                         g.fillOval(4 + col*40, 4 + row*40, 35, 35);
                         break;
-                    case CheckersData.WHITE_KING:
+                    case WHITEQ:
                         g.setColor(Color.WHITE);
                         g.fillOval(4 + col*40, 4 + row*40, 35, 35);
                         g.setColor(Color.BLACK);
                         g.drawString("K", 16 + col*40, 26 + row*40);
                         break;
-                    case CheckersData.BLACK_KING:
+                    case BLACKQ:
                         g.setColor(Color.BLACK);
                         g.fillOval(4 + col*40, 4 + row*40, 35, 35);
                         g.setColor(Color.WHITE);
@@ -198,21 +189,21 @@ public class Board extends JPanel implements ActionListener, MouseListener {
             }
         }
 
-        if (gameInProgress) {
+        if (Active) {
             g.setColor(Color.cyan);
-            for (CheckersMove legalMove : legalMoves) {
-                g.drawRect(2 + legalMove.fromCol * 40, 2 + legalMove.fromRow * 40, 39, 39);
-                g.drawRect(3 + legalMove.fromCol * 40, 3 + legalMove.fromRow * 40, 37, 37);
+            for (Move legalMove : legalMoves) {
+                g.drawRect(2 + legalMove.col1 * 40, 2 + legalMove.row1 * 40, 39, 39);
+                g.drawRect(3 + legalMove.col1 * 40, 3 + legalMove.row1 * 40, 37, 37);
             }
             if (selectedRow >= 0) {
                 g.setColor(Color.white);
                 g.drawRect(2 + selectedCol*40, 2 + selectedRow*40, 39, 39);
                 g.drawRect(3 + selectedCol*40, 3 + selectedRow*40, 37, 37);
                 g.setColor(Color.green);
-                for (CheckersMove legalMove : legalMoves) {
-                    if (legalMove.fromCol == selectedCol && legalMove.fromRow == selectedRow) {
-                        g.drawRect(2 + legalMove.toCol * 40, 2 + legalMove.toRow * 40, 39, 39);
-                        g.drawRect(3 + legalMove.toCol * 40, 3 + legalMove.toRow * 40, 37, 37);
+                for (Move legalMove : legalMoves) {
+                    if (legalMove.col1 == selectedCol && legalMove.row1 == selectedRow) {
+                        g.drawRect(2 + legalMove.col2 * 40, 2 + legalMove.row2 * 40, 39, 39);
+                        g.drawRect(3 + legalMove.col2 * 40, 3 + legalMove.row2 * 40, 37, 37);
                     }
                 }
             }
@@ -221,13 +212,13 @@ public class Board extends JPanel implements ActionListener, MouseListener {
     }
 
     public void mousePressed(MouseEvent evt) {
-        if (!gameInProgress)
+        if (!Active)
             message.setText("Начни новую игру");
         else {
             int col = (evt.getX() - 2) / 40;
             int row = (evt.getY() - 2) / 40;
             if (col >= 0 && col < 8 && row >= 0 && row < 8)
-                doClickSquare(row,col);
+                clickSquare(row,col);
         }
     }
 
