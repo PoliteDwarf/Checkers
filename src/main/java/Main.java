@@ -21,7 +21,6 @@ public class Main extends JPanel {
         board.newGameButton.setBounds(20, 400, 120, 30);
         board.resignButton.setBounds(224, 400, 120, 30);
         board.message.setBounds(0, 350, 350, 30);
-
     }
 
     public static void main(String[] args) {
@@ -32,7 +31,7 @@ public class Main extends JPanel {
         Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
         window.setLocation( (screensize.width - window.getWidth())/2,
                 (screensize.height - window.getHeight())/2 );
-        window.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
         window.setVisible(true);
     }

@@ -9,9 +9,7 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 
     JButton newGameButton;
     JButton resignButton;
-
     JLabel message;
-
 
     private Data board;
 
@@ -122,8 +120,11 @@ public class Board extends JPanel implements ActionListener, MouseListener {
         if (currentPlayer == Data.Check.WHITE) {
             currentPlayer = Data.Check.BLACK;
             legalMoves = board.getMoves(currentPlayer);
-            if (legalMoves == null)
+            if (legalMoves == null){
                 gameOver("Победа белых");
+                repaint();
+                return;
+            }
             else if (legalMoves[0].isJump())
                 message.setText("Чёрный бить обязан");
             else
@@ -132,8 +133,11 @@ public class Board extends JPanel implements ActionListener, MouseListener {
         else {
             currentPlayer = Data.Check.WHITE;
             legalMoves = board.getMoves(currentPlayer);
-            if (legalMoves == null)
+            if (legalMoves == null){
                 gameOver("Победа чёрных");
+                repaint();
+                return;
+            }
             else if (legalMoves[0].isJump())
                 message.setText("Белый бить обязан");
             else
@@ -153,7 +157,7 @@ public class Board extends JPanel implements ActionListener, MouseListener {
 
     public void paintComponent(Graphics g) {
 
-       g.setColor(Color.black);
+        g.setColor(Color.black);
         g.drawRect(0,0,getSize().width-1,getSize().height-1);
         g.drawRect(1,1,getSize().width-3,getSize().height-3);
 
@@ -167,23 +171,23 @@ public class Board extends JPanel implements ActionListener, MouseListener {
                 switch (board.pieceAt(row,col)) {
                     case WHITE:
                         g.setColor(Color.WHITE);
-                        g.fillOval(4 + col*40, 4 + row*40, 35, 35);
+                        g.fillOval(5 + col*40, 5 + row*40, 34, 34);
                         break;
                     case BLACK:
                         g.setColor(Color.BLACK);
-                        g.fillOval(4 + col*40, 4 + row*40, 35, 35);
+                        g.fillOval(5 + col*40, 5 + row*40, 34, 34);
                         break;
                     case WHITEQ:
                         g.setColor(Color.WHITE);
-                        g.fillOval(4 + col*40, 4 + row*40, 35, 35);
+                        g.fillOval(5 + col*40, 5 + row*40, 34, 34);
                         g.setColor(Color.BLACK);
-                        g.drawString("K", 16 + col*40, 26 + row*40);
+                        g.drawString("Q", 16 + col*40, 26 + row*40);
                         break;
                     case BLACKQ:
                         g.setColor(Color.BLACK);
-                        g.fillOval(4 + col*40, 4 + row*40, 35, 35);
+                        g.fillOval(5 + col*40, 5 + row*40, 34, 34);
                         g.setColor(Color.WHITE);
-                        g.drawString("K", 16 + col*40, 26 + row*40);
+                        g.drawString("Q", 16 + col*40, 26 + row*40);
                         break;
                 }
             }
@@ -208,7 +212,6 @@ public class Board extends JPanel implements ActionListener, MouseListener {
                 }
             }
         }
-
     }
 
     public void mousePressed(MouseEvent evt) {
@@ -218,7 +221,7 @@ public class Board extends JPanel implements ActionListener, MouseListener {
             int col = (evt.getX() - 2) / 40;
             int row = (evt.getY() - 2) / 40;
             if (col >= 0 && col < 8 && row >= 0 && row < 8)
-                clickSquare(row,col);
+                clickSquare(row, col);
         }
     }
 

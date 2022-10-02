@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.ArrayList;
 
 class Data {
@@ -14,7 +15,6 @@ class Data {
 
     Data() {
         board = new Check[8][8];
-        setUp();
     }
 
     void setUp() {
